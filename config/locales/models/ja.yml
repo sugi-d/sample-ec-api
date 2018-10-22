@@ -1,0 +1,50 @@
+ja:
+  activerecord:
+    models:
+      user: ユーザー
+      item: 商品
+      point: ポイント
+      transaction: 取引
+    attributes:
+      user:
+        email: メールアドレス
+        password_digest: パスワード
+        login_token: ログイントークン
+        status: 状態
+      items:
+        user_id: ユーザー
+        name: 商品名
+        price: 価格
+        publish_status: 公開状態
+        status: 状態
+      point:
+        user_id: ユーザー
+        transaction_id: 取引
+        amount: 総額
+        kind: 種別
+      transaction:
+        user_id: ユーザー
+        item_id: 商品
+        price: 価格
+    errors:
+      models:
+        point:
+          not_enough_buying_power: '所持ポイントが足りません。'
+          incorrect_item: 'この商品は現在購入できません。'
+          self_dealing: '自己売買をすることはできません。'
+  enums:
+    user:
+      status:
+        unactivated: 無効
+        activated: 有効
+    item:
+      publish_status:
+        unpublished: 非公開
+        published: 公開
+      status:
+        deleted: 削除
+        active: 有効
+    point:
+      registration: 登録特典
+      selling: 売り付け
+      buying: 買い付け

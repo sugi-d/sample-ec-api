@@ -1,0 +1,377 @@
+swagger: '2.0'
+info:
+  description: "http://localhost:3000"
+  version: 1.0
+  title: Sample EC API
+host: localhost:3000
+basePath: /
+tags:
+- name: users
+  description: ユーザー
+- name: items
+  description: 商品
+- name: transactions
+  description: 注文
+schemes:
+- http
+securityDefinitions:
+  JWT:
+    type: apiKey
+    name: Authorization
+    in: header
+paths:
+  /users:
+    post:
+      tags:
+      - users
+      summary: ユーザー登録API
+      description: ユーザーが作成されます。
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+      - name: body
+        in: body
+        description: |
+          email: メールアドレス
+          password: パスワード
+          password_confirmation: パスワード確認
+        required: true
+        schema:
+          $ref: "#/definitions/Signup"
+      responses:
+        204:
+          description: ユーザー登録成功
+        422:
+          schema:
+            $ref: "#/definitions/Errors"
+      x-code-samples:
+        - lang: shell
+          source: |
+            curl -X POST -H "Content-Type:application/json" -d '{ "email": "test@example.com", "password": "123456", "password_confirmation": "123456" }' 'http://localhost:3000/users'
+
+  /users/signin:
+    post:
+      tags:
+      - users
+      summary: サインインAPI
+      description: JWTが取得できます。
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+      - name: body
+        in: body
+        description: |
+          email: メールアドレス
+          password: パスワード
+        required: true
+        schema:
+          $ref: "#/definitions/Signin"
+      responses:
+        201:
+          description: サインイン成功
+          schema:
+            $ref: "#/definitions/Jwt"
+        422:
+          schema:
+            $ref: "#/definitions/Errors"
+      x-code-samples:
+        - lang: shell
+          source: |
+            curl -X POST -H "Content-Type:application/json" -d '{ "auth": { "email": "test@example.com", "password": "123456" } }' 'http://localhost:3000/users/signin'
+
+  /items:
+    post:
+      tags:
+      - items
+      summary: 商品登録API
+      description: 商品を登録できます。
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      security:
+      - JWT: []
+      parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          properties:
+            name:
+              description: 商品名
+              type: string 
+              required: true
+            price:
+              description: 価格
+              type: integer
+              required: true
+            publish_status:
+              description: 公開状態
+              required: true
+              type: enum
+              enum:
+              - published
+              - unpublished
+      responses:
+        201:
+          description: 成功
+        422:
+          schema:
+            $ref: "#/definitions/Errors"
+      x-code-samples:
+        - lang: shell
+          source: |
+            curl -X POST -H "Content-Type:application/json" -H "Authorization: Bearer ${JWT}" -d '{ "name": "example_item", "price": 100, "publish_status": "published" }' 'http://localhost:3000/items'
+    get:
+      tags:
+      - items
+      summary: 商品一覧API
+      description: 商品一覧が取得できます。
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+      - name: offset
+        in: query
+        description: オフセット
+        required: false
+        type: integer
+      - name: limit
+        in: query
+        description: リミット
+        required: false
+        type: integer
+      responses:
+        200:
+          description: 成功
+          schema:
+            $ref: "#/definitions/ItemList"
+      x-code-samples:
+        - lang: shell
+          source: |
+            curl -H "Content-Type:application/json" 'http://localhost:3000/items'
+
+  /items/{item_id}:
+    get:
+      tags:
+      - items
+      summary: 商品詳細API
+      description: 商品詳細情報が取得できます。
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+      - name: item_id
+        in: path
+        description: 商品ID
+        required: true
+        type: integer
+      responses:
+        200:
+          description: 成功
+          schema:
+            $ref: "#/definitions/Item"
+        400:
+          description: 商品が存在しない
+        422:
+          schema:
+            $ref: "#/definitions/Errors"
+      x-code-samples:
+        - lang: shell
+          source: |
+            curl -H "Content-Type:application/json" 'http://localhost:3000/items/1'
+    patch:
+      tags:
+      - items
+      summary: 商品編集API
+      description: 商品を編集できます。
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      security:
+      - JWT: []
+      parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          properties:
+            name:
+              description: 商品名
+              type: string 
+              required: true
+            price:
+              description: 価格
+              type: integer
+              required: true
+            publish_status:
+              description: 公開状態
+              required: true
+              type: enum
+              enum:
+              - published
+              - unpublished
+      responses:
+        204:
+          description: 成功
+        400:
+          description: 商品が存在しない
+        422:
+          schema:
+            $ref: "#/definitions/Errors"
+      x-code-samples:
+        - lang: shell
+          source: |
+            curl -X PATCH -H "Content-Type:application/json" -H "Authorization: Bearer ${JWT}" -d '{ "name": "example_item", "price": 100, "publish_status": "published" }' 'http://localhost:3000/items/1'
+    delete:
+      tags:
+      - items
+      summary: 商品削除API
+      description: 商品を論理削除します。
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      security:
+      - JWT: []
+      responses:
+        204:
+          description: 成功
+        400:
+          description: 商品が存在しない
+        422:
+          schema:
+            $ref: "#/definitions/Errors"
+      x-code-samples:
+        - lang: shell
+          source: |
+            curl -X DELETE -H "Content-Type:application/json" -H "Authorization: Bearer ${JWT}" 'http://localhost:3000/items/1'
+
+  /transactions:
+    post:
+      tags:
+      - transactions
+      summary: 商品売買API
+      description: 商品を売買できます。
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      security:
+      - JWT: []
+      parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          properties:
+            item_id:
+              description: 商品ID
+              type: integer
+              required: true
+      responses:
+        201:
+          description: 成功
+        400:
+          description: 商品が存在しない
+        422:
+          schema:
+            $ref: "#/definitions/Errors"
+      x-code-samples:
+        - lang: shell
+          source: |
+            curl -X POST -H "Content-Type:application/json" -H "Authorization: Bearer ${JWT}" -d '{ "item_id": 1 }' 'http://localhost:3000/transactions'
+
+definitions:
+  Errors:
+    type: object
+    properties:
+      messages:
+        type: array
+        example:
+          - エラーメッセージ
+  Signup:
+    type: object
+    description: ユーザー登録
+    required:
+    - email
+    - password
+    - password_confirmation
+    properties:
+      email:
+        type: string
+        description: メールアドレス
+      password:
+        type: string
+        description: パスワード
+      password_confirmation:
+        type: string
+        description: 確認用パスワード
+  Signin:
+    type: object
+    required:
+    - auth
+    properties:
+      auth:
+        type: object
+        description: 認証情報
+        required:
+        - email
+        - password
+        properties:
+          email:
+            type: string
+            description: メールアドレス
+          password:
+            type: string
+            description: パスワード
+  Jwt:
+    type: object
+    properties:
+      jwt:
+        type: string
+        description: JWT
+  ItemList:
+    type: object
+    properties:
+      items:
+        type: array
+        description: 商品リスト
+        items:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: 商品ID
+            name:
+              type: string
+              description: 商品名
+            price:
+              type: integer
+              description: 価格
+      prev_url:
+        type: string
+        description: 前ページURL
+      next_url:
+        type: string
+        description: 次ページURL
+  Item:
+    type: object
+    properties:
+      name:
+        type: string
+        description: 商品名
+      price:
+        type: integer
+        description: 価格
+

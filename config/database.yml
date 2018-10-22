@@ -1,0 +1,30 @@
+default: &default
+  adapter:   mysql2
+  pool:      30
+  timeout:   5000
+  encoding:  utf8mb4
+  charset:   utf8mb4
+  collation: utf8mb4_general_ci
+  port:      3306
+  username: <%= ENV.fetch('MYSQL_USERNAME', 'root') %>
+  password: <%= ENV.fetch('MYSQL_PASSWORD', 'test') %>
+  host:     <%= ENV.fetch('MYSQL_HOST',     'db') %>
+  port:     <%= ENV.fetch('MYSQL_PORT',     '3306') %>
+  database: 'sample_ec'
+
+development:
+  <<: *default
+
+production:
+  <<: *default
+  username:  <%= Rails.application.secrets.mysql_user_name %>
+  password:  <%= Rails.application.secrets.mysql_password %>
+  host:      <%= Rails.application.secrets.mysql_host %>
+  database:  <%= Rails.application.secrets.mysql_database %>
+
+# Warning: The database defined as "test" will be erased and
+# re-generated from your development database when you run "rake".
+# Do not set this db to the same as development or production.
+test:
+  <<: *default
+  database: 'rspec'
